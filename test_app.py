@@ -20,6 +20,7 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Test User', response.data)
         self.assertIn(b'This is a test message', response.data)
+        self.assertIn(b'Submitted on:', response.data)
 
 if __name__ == '__main__':
     unittest.main() 

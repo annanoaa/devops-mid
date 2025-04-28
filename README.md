@@ -6,6 +6,8 @@ This project demonstrates a simplified DevOps pipeline using local resources. It
 
 This project implements a complete DevOps workflow with:
 - A simple Flask web application
+  - Submit messages with name and content
+  - View messages with timestamps
 - Version control with Git
 - Continuous Integration with GitHub Actions
 - Infrastructure as Code using Terraform and Ansible
@@ -31,7 +33,7 @@ This project implements a complete DevOps workflow with:
 ├── app.py                  # Flask application
 ├── templates/              # HTML templates
 │   ├── index.html          # Home page with form
-│   └── result.html         # Result page
+│   └── result.html         # Result page with timestamp
 ├── test_app.py             # Unit tests
 ├── main.tf                 # Terraform configuration
 ├── deploy.yml              # Ansible playbook

@@ -15,6 +15,12 @@
             border-radius: 5px;
             margin-top: 20px;
         }
+        .timestamp {
+            font-size: 0.8em;
+            color: #777;
+            text-align: right;
+            margin-top: 10px;
+        }
         .button {
             background-color: #4CAF50;
             color: white;
@@ -37,6 +43,7 @@
     <div class="message-box">
         <h2>From: {{ name }}</h2>
         <p>{{ message }}</p>
+        <div class="timestamp">Submitted on: {{ timestamp }}</div>
     </div>
     
     <a href="/" class="button">Back to Home</a>
