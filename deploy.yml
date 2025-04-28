@@ -1,0 +1,81 @@
+---
+- name: Deploy Flask Application
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  
+  vars:
+    app_dir: "{{ playbook_dir }}"
+    inactive_env: "{{ 'green' if lookup('file', app_dir + '/deploy/active_env.txt') == 'blue' else 'blue' }}"
+    active_env: "{{ lookup('file', app_dir + '/deploy/active_env.txt') }}"
+  
+  tasks:
+    - name: Display current environment status
+      debug:
+        msg: "Current active environment is {{ active_env }}. Deploying to {{ inactive_env }}."
+    
+    - name: Create deployment directories if they don't exist
+      file:
+        path: "{{ app_dir }}/deploy/{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "blue"
+        - "green"
+        - "logs"
+        
+    - name: Copy application files to inactive environment
+      copy:
+        src: "{{ item }}"
+        dest: "{{ app_dir }}/deploy/{{ inactive_env }}/"
+        mode: '0644'
+      with_items:
+        - "app.py"
+        - "requirements.txt"
+        - "health_check.py"
+      
+    - name: Create templates directory in inactive environment
+      file:
+        path: "{{ app_dir }}/deploy/{{ inactive_env }}/templates"
+        state: directory
+        mode: '0755'
+    
+    - name: Copy template files to inactive environment
+      copy:
+        src: "{{ item }}"
+        dest: "{{ app_dir }}/deploy/{{ inactive_env }}/templates/"
+        mode: '0644'
+      with_fileglob:
+        - "templates/*.html"
+    
+    - name: Install Python dependencies in inactive environment
+      pip:
+        requirements: "{{ app_dir }}/deploy/{{ inactive_env }}/requirements.txt"
+        state: present
+      
+    - name: Run health check against inactive environment
+      shell: "cd {{ app_dir }}/deploy/{{ inactive_env }} && python3 -m flask run --port=5001 & sleep 3 && python3 health_check.py http://localhost:5001 && pkill -f 'flask run --port=5001'"
+      register: health_check_result
+      ignore_errors: yes
+      
+    - name: Switch active environment
+      block:
+        - name: Update active environment file
+          copy:
+            content: "{{ inactive_env }}"
+            dest: "{{ app_dir }}/deploy/active_env.txt"
+          when: health_check_result.rc == 0
+        
+        - name: Display deployment success message
+          debug:
+            msg: "Successfully deployed to {{ inactive_env }} and switched active environment."
+          when: health_check_result.rc == 0
+            
+        - name: Display deployment failure message
+          debug:
+            msg: "Deployment to {{ inactive_env }} failed health check. Keeping {{ active_env }} as active."
+          when: health_check_result.rc != 0
+      
+    - name: Start application in background (simulation only)
+      debug:
+        msg: "In a real environment, we would start the application in the active environment ({{ lookup('file', app_dir + '/deploy/active_env.txt') }}) here." 
