@@ -3,7 +3,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-APP_VERSION = "1.0.1"  # Change this during demo
+APP_VERSION = "1.0.2"  # Change this during demo
 
 @app.route('/')
 def index():
